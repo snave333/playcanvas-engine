@@ -69,7 +69,7 @@ class Morph extends RefCountedObject {
 
     get aabb() {
 
-        // lazy evaluation, which allows us to skip this completely if customAABB is used
+        // lazy evaluation, which allows us to skip this completely if customAABB is used, or if the mesh is skinned
         if (!this._aabb) {
             // calculate min and max expansion size
             // Note: This represents average case, where most morph targets expand the mesh within the same area. It does not
