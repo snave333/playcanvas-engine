@@ -2106,11 +2106,17 @@ const _frameEndData = {};
  * Create tick function to be wrapped in closure.
  *
  * @param {AppBase} _app - The application.
+ * @param {number} [_tickRate] - The desired tick rate; updates will occur no faster.
  * @returns {MakeTickCallback} The tick function.
  * @private
  */
-const makeTick = function (_app) {
+const makeTick = function (_app, _tickRate = 60) {
     const application = _app;
+
+    const tickRate = _tickRate;
+    let tickTimerMs = 1000 / tickRate;
+    let lastUpdateMs = -1;
+
     /**
      * @param {number} [timestamp] - The timestamp supplied by requestAnimationFrame.
      * @param {*} [frame] - XRFrame from requestAnimationFrame callback.
@@ -2118,6 +2124,24 @@ const makeTick = function (_app) {
     return function (timestamp, frame) {
         if (!application.graphicsDevice)
             return;
+
+        // reset timer on our initial tick
+
+        if (lastUpdateMs === -1) {
+            lastUpdateMs = now();
+        }
+
+        const nowMs = now();
+        const elapsedMs = nowMs - lastUpdateMs;
+        lastUpdateMs = nowMs;
+
+        // check to see if it's time to tick
+
+        tickTimerMs -= elapsedMs;
+        if (tickTimerMs > 0) {
+            return;
+        }
+        tickTimerMs += 1000 / tickRate;
 
         application.frameRequestId = null;
         application._inFrameUpdate = true;
