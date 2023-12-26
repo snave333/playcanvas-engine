@@ -2114,8 +2114,8 @@ const makeTick = function (_app, _tickRate = 60) {
     const application = _app;
 
     const tickRate = _tickRate;
-    let tickTimerMs = 1000 / tickRate;
-    let lastUpdateMs = -1;
+    let tickTimerMs = 0;
+    let lastTickMs = 0;
 
     /**
      * @param {number} [timestamp] - The timestamp supplied by requestAnimationFrame.
@@ -2125,23 +2125,9 @@ const makeTick = function (_app, _tickRate = 60) {
         if (!application.graphicsDevice)
             return;
 
-        // reset timer on our initial tick
-
-        if (lastUpdateMs === -1) {
-            lastUpdateMs = now();
+        if (lastTickMs === 0) {
+            lastTickMs = now();
         }
-
-        const nowMs = now();
-        const elapsedMs = nowMs - lastUpdateMs;
-        lastUpdateMs = nowMs;
-
-        // check to see if it's time to tick
-
-        tickTimerMs -= elapsedMs;
-        if (tickTimerMs > 0) {
-            return;
-        }
-        tickTimerMs += 1000 / tickRate;
 
         application.frameRequestId = null;
         application._inFrameUpdate = true;
@@ -2152,7 +2138,7 @@ const makeTick = function (_app, _tickRate = 60) {
         app = application;
 
         const currentTime = application._processTimestamp(timestamp) || now();
-        const ms = currentTime - (application._time || currentTime);
+        let ms = currentTime - (application._time || currentTime);
         let dt = ms / 1000.0;
         dt = math.clamp(dt, 0, application.maxDeltaTime);
         dt *= application.timeScale;
@@ -2165,6 +2151,23 @@ const makeTick = function (_app, _tickRate = 60) {
         } else {
             application.frameRequestId = platform.browser ? window.requestAnimationFrame(application.tick) : null;
         }
+
+        // check to see if it's time to tick
+        tickTimerMs -= ms;
+        if (tickTimerMs > 0) {
+            application._inFrameUpdate = false;
+            return;
+        }
+
+        // rebuild our ms and dt
+        ms = currentTime - lastTickMs;
+        dt = ms / 1000.0;
+        dt = math.clamp(dt, 0, application.maxDeltaTime);
+        dt *= application.timeScale;
+
+        // restart our tick timer
+        lastTickMs = currentTime;
+        tickTimerMs += 1000 / tickRate;
 
         if (application.graphicsDevice.contextLost)
             return;

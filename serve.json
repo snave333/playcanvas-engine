@@ -1,0 +1,25 @@
+{
+  "headers": [
+    {
+      "source": "**/*.@(js)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://launch.playcanvas.com"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Origin, Content-Type, Accept, Credentials, Private-Network"
+        },
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Allow-Private-Network",
+          "value": "true"
+        }
+      ]
+    }
+  ]
+}
